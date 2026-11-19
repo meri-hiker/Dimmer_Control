@@ -43,3 +43,78 @@ final class DimRegionTests: XCTestCase {
         XCTAssertEqual(DimRegion.frame(in: screen, side: .left, divider: .nan).width, 500)
     }
 }
+
+final class DimmingStateTests: XCTestCase {
+    func testEachSideCanBeEnabledAndDisabledIndependently() {
+        var state = DimmingState()
+        XCTAssertFalse(state.isEnabled)
+        state.setEnabled(true, for: .left)
+        XCTAssertTrue(state.leftEnabled)
+        XCTAssertFalse(state.rightEnabled)
+        state.setEnabled(true, for: .right)
+        state.setEnabled(false, for: .left)
+        XCTAssertFalse(state.leftEnabled)
+        XCTAssertTrue(state.rightEnabled)
+        state.setEnabled(false, for: .right)
+        XCTAssertFalse(state.isEnabled)
+    }
+
+    func testEveryBrightnessChangeImmediatelyChangesOnlyItsSideOpacity() {
+        var state = DimmingState(leftBrightness: 0.45, rightBrightness: 0.6)
+        state.setEnabled(true, for: .left)
+        state.setEnabled(true, for: .right)
+        for value in stride(from: 0.15, through: 0.9, by: 0.01) {
+            state.setBrightness(value, for: .left)
+            XCTAssertEqual(state.opacity(for: .left), 1 - value, accuracy: 0.000001)
+            XCTAssertEqual(state.opacity(for: .right), 0.4, accuracy: 0.000001)
+            XCTAssertTrue(state.leftEnabled && state.rightEnabled)
+        }
+        state.setBrightness(0.8, for: .right)
+        XCTAssertEqual(state.opacity(for: .right), 0.2, accuracy: 0.000001)
+    }
+
+    func testPauseAndResumeRestoreBothSidesAndTheirLevels() {
+        var state = DimmingState(leftBrightness: 0.2, rightBrightness: 0.8)
+        state.setEnabled(true, for: .left)
+        state.setEnabled(true, for: .right)
+        state.toggleAll()
+        XCTAssertFalse(state.isEnabled)
+        state.toggleAll()
+        XCTAssertTrue(state.leftEnabled && state.rightEnabled)
+        XCTAssertEqual(state.leftBrightness, 0.2)
+        XCTAssertEqual(state.rightBrightness, 0.8)
+        state.setEnabled(false, for: .right)
+        state.pause()
+        state.toggleAll()
+        XCTAssertTrue(state.leftEnabled)
+        XCTAssertFalse(state.rightEnabled)
+    }
+
+    func testSwapMovesPowerAndBrightnessTogetherEvenWhenPaused() {
+        var state = DimmingState(leftBrightness: 0.25, rightBrightness: 0.75)
+        state.setEnabled(true, for: .left)
+        state.swapSides()
+        XCTAssertFalse(state.leftEnabled)
+        XCTAssertTrue(state.rightEnabled)
+        XCTAssertEqual(state.rightBrightness, 0.25)
+        XCTAssertEqual(state.leftBrightness, 0.75)
+        state.pause()
+        state.swapSides()
+        state.toggleAll()
+        XCTAssertTrue(state.leftEnabled)
+        XCTAssertFalse(state.rightEnabled)
+        XCTAssertEqual(state.leftBrightness, 0.25)
+    }
+
+    func testBrightnessBoundsAndStartupSafety() {
+        var state = DimmingState(leftBrightness: .nan, rightBrightness: .infinity)
+        XCTAssertFalse(state.isEnabled)
+        XCTAssertEqual(state.leftBrightness, 0.45)
+        XCTAssertEqual(state.rightBrightness, 0.45)
+        state.setBrightness(-10, for: .left)
+        state.setBrightness(10, for: .right)
+        XCTAssertEqual(state.leftBrightness, 0.15)
+        XCTAssertEqual(state.rightBrightness, 0.9)
+        XCTAssertFalse(state.isEnabled)
+    }
+}

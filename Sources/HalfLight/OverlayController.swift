@@ -1,4 +1,5 @@
 import AppKit
+import QuartzCore
 import HalfLightCore
 
 private final class DimPanel: NSPanel {
@@ -8,18 +9,32 @@ private final class DimPanel: NSPanel {
 
 @MainActor
 final class OverlayController {
-    private var panel: DimPanel?
+    private var panels: [DimSide: DimPanel] = [:]
 
-    func show(on screen: NSScreen, side: DimSide, divider: Double, opacity: Double) {
-        let frame = DimRegion.frame(in: screen.frame, side: side, divider: divider)
-        let panel = self.panel ?? makePanel()
-        self.panel = panel
-        panel.setFrame(frame, display: true)
-        panel.alphaValue = DimRegion.opacity(opacity)
-        panel.orderFrontRegardless()
+    func update(on screen: NSScreen, state: DimmingState, divider: Double) {
+        // Update existing windows directly during NSSlider's tracking loop.
+        // No animation, debounce, or SwiftUI redraw is needed for screen changes.
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0
+            context.allowsImplicitAnimation = false
+            for side in DimSide.allCases {
+                guard state.isEnabled(for: side) else {
+                    panels[side]?.orderOut(nil)
+                    continue
+                }
+                let panel = panels[side] ?? makePanel()
+                panels[side] = panel
+                let frame = DimRegion.frame(in: screen.frame, side: side, divider: divider)
+                if panel.frame != frame { panel.setFrame(frame, display: true) }
+                panel.alphaValue = DimRegion.opacity(state.opacity(for: side))
+                if !panel.isVisible { panel.orderFrontRegardless() }
+                panel.displayIfNeeded()
+            }
+        }
+        CATransaction.flush()
     }
 
-    func hide() { panel?.orderOut(nil) }
+    func hide() { panels.values.forEach { $0.orderOut(nil) } }
 
     private func makePanel() -> DimPanel {
         let panel = DimPanel(contentRect: .zero,
@@ -32,7 +47,6 @@ final class OverlayController {
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
         panel.isFloatingPanel = true
-        // Keep the menu bar and its controls accessible above the dimmer.
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.statusWindow)) - 1)
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         panel.isExcludedFromWindowsMenu = true

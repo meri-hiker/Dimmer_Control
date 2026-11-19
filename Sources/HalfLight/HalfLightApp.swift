@@ -34,7 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let available = shortcuts.register { [weak self] identifier in
             guard let self else { return }
-            if identifier == 1 { self.model.isEnabled.toggle() }
+            if identifier == 1 { self.model.toggleAll() }
             if identifier == 2 { self.model.swapSide() }
         }
         popover.behavior = .transient

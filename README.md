@@ -52,16 +52,16 @@ Use **HalfLight.xcodeproj** for the graphical build workflow above. `Package.swi
 
 1. Arrange two apps side by side, using macOS Split View or desktop window tiling.
 2. Click the half-circle icon in the menu bar.
-3. Choose Left or Right, then switch on **Dim split screen**.
-4. Adjust **Darkness** (10–85%) and **Split position** (20/80 through 80/20) to match your layout. Choose a display when multiple monitors are connected.
-5. Pause dimming when leaving your split-screen workspace, or quit from the popover.
+3. Click the **On/Off** power button for **Left side**, **Right side**, or both. Each button controls its own side independently.
+4. Drag each enabled side’s **Brightness** slider (15–90%). The screen changes continuously while you drag; higher values make that side brighter. Adjust **Split position** (20/80 through 80/20) to match your layout. Choose a display when multiple monitors are connected.
+5. Use **Pause both** when leaving your split-screen workspace, or turn either side off separately.
 
 Global shortcuts:
 
 | Action | Shortcut |
 | --- | --- |
-| Toggle dimming | Control–Option–Command–D |
-| Swap dimmed side | Control–Option–Command–S |
+| Pause / resume the last enabled side(s) | Control–Option–Command–D |
+| Swap the sides’ power and brightness settings | Control–Option–Command–S |
 
 If another app has registered either shortcut, HalfLight disables both shortcuts and shows that they are unavailable. The menu-bar controls remain usable.
 
@@ -70,7 +70,7 @@ If another app has registered either shortcut, HalfLight disables both shortcuts
 - The black overlay passes all mouse events through, so both apps remain interactive. It does not change hardware brightness.
 - It stays above ordinary application windows and is configured to accompany full-screen spaces, including native Split View. The menu bar stays accessible.
 - Activation is manual. HalfLight does **not** detect native Split View or automatically stop when you change Spaces. While enabled, its shade follows Spaces on the selected display. Turn it off when leaving Split View.
-- Left/right selection, darkness, divider, and display choice are saved. Dimming always starts paused after launch.
+- Each side’s brightness, divider, and display choice are saved. Existing darkness preferences are migrated to brightness. Both sides always start off after launch.
 - Sleep, an inactive login session, or disconnection of the selected monitor pauses dimming. Re-enable it when ready.
 - No Accessibility, Screen Recording, administrator access, or network access is required. Full-screen and multi-monitor behaviour still needs validation on real macOS hardware.
 
@@ -83,13 +83,14 @@ swift test
 bash scripts/build-app.sh
 ```
 
-The tests cover equal and uneven splits, negative display coordinates, odd screen widths, and invalid preferences. The GitHub Actions workflow runs the package tests, builds and tests the Xcode project, and builds the app bundle on macOS when this folder is used as a repository.
+The tests cover equal and uneven splits, negative display coordinates, odd screen widths, invalid preferences, independent side controls, immediate brightness-to-opacity changes, and pause/resume/swap behaviour. The GitHub Actions workflow runs the package tests, builds and tests the Xcode project, and builds the app bundle on macOS when this folder is used as a repository.
 
 Manual macOS checks:
 
 - Enable each side in desktop tiling and in a native full-screen Split View Space; verify the intended pane is dimmed and clicks/scrolling still reach both apps.
+- Turn on the left side, drag its Brightness slider without releasing the mouse, and verify the overlay tracks continuously. Repeat on the right. Turn on both, use different levels, then turn one off and verify the other is unchanged.
 - Move the Split View divider and match it with Split position; check 20/80, 50/50, and 80/20 layouts.
-- Open the popover while dimming; verify the menu bar, Pause, Quit, and both global shortcuts work.
+- Open the popover while dimming; verify the menu bar, Pause both, Quit, and both global shortcuts work.
 - Try an external display, including one positioned left of the primary display. Unplug the selected display; dimming should pause.
 - Change Spaces, sleep/wake, log out/in, and relaunch. Verify the documented manual activation and pause behaviour.
 
