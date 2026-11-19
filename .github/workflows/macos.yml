@@ -1,0 +1,22 @@
+name: macOS build
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test split geometry and preference bounds
+        run: swift test
+      - name: Build and test Xcode project
+        run: xcodebuild -project HalfLight.xcodeproj -scheme 'HalfLight App' -destination 'platform=macOS' -derivedDataPath /tmp/HalfLightDerivedData test
+      - name: Build app bundle
+        run: bash scripts/build-app.sh --universal
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HalfLight-macOS
+          path: |
+            dist/HalfLight-macOS.zip
+            dist/HalfLight.dmg
+          if-no-files-found: error
