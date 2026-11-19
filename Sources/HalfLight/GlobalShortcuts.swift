@@ -15,7 +15,7 @@ final class GlobalShortcuts {
             var identifier = EventHotKeyID()
             let status = GetEventParameter(event, EventParamName(kEventParamDirectObject),
                                           EventParamType(typeEventHotKeyID), nil,
-                                          UInt32(MemoryLayout<EventHotKeyID>.size), nil, &identifier)
+                                          MemoryLayout<EventHotKeyID>.size, nil, &identifier)
             guard status == noErr else { return status }
             // Carbon application events run on the main event loop.
             MainActor.assumeIsolated {
