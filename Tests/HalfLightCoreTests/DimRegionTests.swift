@@ -1,4 +1,5 @@
 import XCTest
+import CoreGraphics
 @testable import HalfLightCore
 
 final class DimRegionTests: XCTestCase {

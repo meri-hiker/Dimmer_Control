@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 public enum DimSide: String, CaseIterable, Identifiable {
     case left, right
