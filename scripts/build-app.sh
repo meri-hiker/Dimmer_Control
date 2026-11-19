@@ -31,7 +31,7 @@ plutil -lint "$APP_DIR/Contents/Info.plist"
 codesign --force --sign - "$APP_DIR"
 codesign --verify --strict "$APP_DIR"
 if [[ "${1:-}" == "--universal" ]]; then
-    lipo -verify_arch arm64 x86_64 "$APP_DIR/Contents/MacOS/HalfLight"
+    lipo "$APP_DIR/Contents/MacOS/HalfLight" -verify_arch arm64 x86_64
 fi
 ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "$PROJECT_DIR/dist/HalfLight-macOS.zip"
 INSTALLER_DIR="$(mktemp -d "$PROJECT_DIR/dist/installer.XXXXXX")"
