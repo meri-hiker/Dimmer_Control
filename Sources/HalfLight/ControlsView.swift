@@ -155,7 +155,7 @@ private struct LiveSlider: NSViewRepresentable {
         slider.doubleValue = value
         slider.isEnabled = context.environment.isEnabled
         slider.setAccessibilityLabel(label)
-        slider.setAccessibilityValue("\(Int((value * 100).rounded())) percent")
+        slider.toolTip = "\(label): \(Int((value * 100).rounded()))%"
     }
 
     final class Coordinator: NSObject {

@@ -274,7 +274,7 @@
 				);
 				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf";
-				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG $(inherited)";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG $(inherited) HALFLIGHT_APP_TESTS";
 				"ENABLE_TESTABILITY" = "YES";
 				"ONLY_ACTIVE_ARCH" = "YES";
 			};
@@ -295,6 +295,7 @@
 				);
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "$(inherited) HALFLIGHT_APP_TESTS";
 			};
 			"name" = "Release";
 		};
@@ -360,6 +361,9 @@
 			"buildActionMask" = "2147483647";
 			"files" = (
 				"CD105291464DBD1C3C07E1CA",
+				"AB7875A5CCA9DD700409DD01",
+				"C62D6D507E224780B24CC129",
+				"787069A1BE37542E4A93E911",
 			);
 			"runOnlyForDeploymentPostprocessing" = "0";
 		};
@@ -431,6 +435,18 @@
 				"F75109BEB4DD8800DA6B45F8",
 				"C062A5A4A7F4F37DD90F54CB",
 			);
+		};
+		"AB7875A5CCA9DD700409DD01" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "6E317CED285831098C5FCE02";
+		};
+		"C62D6D507E224780B24CC129" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B2478A0E728F31FE68730130";
+		};
+		"787069A1BE37542E4A93E911" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D482F5A5D43DB3273191C420";
 		};
 	};
 	"rootObject" = "98F54143AB4E86B28C3AFEE0";

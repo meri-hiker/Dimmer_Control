@@ -118,3 +118,55 @@ final class DimmingStateTests: XCTestCase {
         XCTAssertFalse(state.isEnabled)
     }
 }
+
+#if HALFLIGHT_APP_TESTS
+import AppKit
+import SwiftUI
+
+final class LiveControlsTests: XCTestCase {
+    @MainActor
+    func testContinuousSliderUpdatesOverlayBeforeActionReturns() throws {
+        _ = NSApplication.shared
+        let screen = try XCTUnwrap(NSScreen.screens.first)
+        let model = DimmerModel()
+        model.displayID = try XCTUnwrap(model.displays.first).id
+        model.toggle(.left)
+        let host = NSHostingView(rootView: ControlsView(model: model, shortcutsAvailable: false))
+        let window = NSWindow(contentRect: NSRect(x: 40, y: 40, width: 350, height: 650),
+                              styleMask: [.titled], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = host
+        window.orderFront(nil)
+        defer { model.pause(); window.close() }
+        host.layoutSubtreeIfNeeded()
+        window.displayIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+
+        func sliders(in view: NSView) -> [NSSlider] {
+            (view as? NSSlider).map { [$0] } ?? view.subviews.flatMap { sliders(in: $0) }
+        }
+        let slider = try XCTUnwrap(sliders(in: host).first { $0.accessibilityLabel() == "Left side brightness" })
+        XCTAssertTrue(slider.isContinuous, "Mouse tracking must emit values before mouse-up.")
+        XCTAssertTrue(slider.isEnabled)
+        let leftFrame = DimRegion.frame(in: screen.frame, side: .left, divider: model.divider)
+        let panel = try XCTUnwrap(NSApp.windows.first { $0.ignoresMouseEvents && $0.frame == leftFrame })
+        let untouchedRight = model.state.rightBrightness
+        for brightness in [0.2, 0.35, 0.6, 0.85] {
+            slider.doubleValue = brightness
+            XCTAssertTrue(slider.sendAction(slider.action, to: slider.target))
+            // These assertions run immediately, without mouse-up or a run-loop wait.
+            XCTAssertEqual(model.state.leftBrightness, brightness, accuracy: 0.000001)
+            XCTAssertEqual(panel.alphaValue, CGFloat(1 - brightness), accuracy: 0.000001)
+            XCTAssertEqual(model.state.rightBrightness, untouchedRight)
+            XCTAssertFalse(model.state.rightEnabled)
+        }
+        model.toggle(.right)
+        let rightFrame = DimRegion.frame(in: screen.frame, side: .right, divider: model.divider)
+        let rightPanel = try XCTUnwrap(NSApp.windows.first { $0.ignoresMouseEvents && $0.frame == rightFrame })
+        XCTAssertTrue(panel.isVisible && rightPanel.isVisible)
+        model.toggle(.left)
+        XCTAssertFalse(panel.isVisible)
+        XCTAssertTrue(rightPanel.isVisible)
+    }
+}
+#endif
